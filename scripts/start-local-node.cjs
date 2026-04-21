@@ -5,7 +5,8 @@ const path = require('path');
 // Start local Hardhat node
 console.log('Starting local Hardhat node...');
 const nodeProcess = require('child_process').spawn('npx', ['hardhat', 'node'], {
-  stdio: 'inherit'
+  stdio: 'inherit',
+  shell: true
 });
 
 // Wait for node to start
