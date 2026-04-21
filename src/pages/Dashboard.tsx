@@ -36,9 +36,9 @@ const Dashboard: React.FC<DashboardProps> = ({ walletAddress, userRole }) => {
   }, []);
 
   return (
-    <div className="h-[calc(100vh-64px)] w-full flex bg-slate-50 relative overflow-hidden">
+    <div className="h-[calc(100vh-80px)] w-full flex relative overflow-hidden">
       {/* Side Navigation (Modern) */}
-      <div className="w-24 bg-slate-900 flex flex-col items-center py-8 gap-10 z-30">
+      <div className="w-24 glass-panel border-r border-white/10 border-y-0 border-l-0 flex flex-col items-center py-8 gap-10 z-30 rounded-none shadow-[10px_0_30px_rgba(0,0,0,0.3)]">
         <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
           <Car size={24} />
         </div>
@@ -103,8 +103,9 @@ const Dashboard: React.FC<DashboardProps> = ({ walletAddress, userRole }) => {
                           initial={{ x: -100, opacity: 0 }}
                           animate={{ x: 0, opacity: 1 }}
                           exit={{ x: -100, opacity: 0 }}
-                          className="w-80 bg-white/95 backdrop-blur-xl rounded-[2.5rem] border border-white shadow-2xl p-8 overflow-hidden relative"
+                          className="w-80 glass-panel rounded-[2.5rem] border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.5)] p-8 overflow-hidden relative group"
                         >
+                          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                           <div className="absolute top-0 right-0 p-4">
                             <div className={`w-3 h-3 rounded-full ${activeRide.status === 0 ? 'bg-amber-500' : 'bg-green-500'} animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.5)]`}></div>
                           </div>
@@ -123,22 +124,41 @@ const Dashboard: React.FC<DashboardProps> = ({ walletAddress, userRole }) => {
 
                           <div className="space-y-4 mb-8">
                             <div className="flex items-center gap-3">
-                              <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
-                              <p className="text-xs font-bold text-slate-600 truncate">{activeRide.pickupLocation}</p>
+                              <div className="w-2 h-2 rounded-full bg-indigo-400 shadow-[0_0_8px_#818cf8]"></div>
+                              <p className="text-xs font-bold text-slate-300 truncate">{activeRide.pickupLocation}</p>
                             </div>
                             <div className="flex items-center gap-3">
-                              <div className="w-1.5 h-1.5 rounded-sm bg-purple-500"></div>
-                              <p className="text-xs font-bold text-slate-600 truncate">{activeRide.dropoffLocation}</p>
+                              <div className="w-2 h-2 rounded-sm bg-pink-400 shadow-[0_0_8px_#f472b6]"></div>
+                              <p className="text-xs font-bold text-slate-300 truncate">{activeRide.dropoffLocation}</p>
                             </div>
                           </div>
 
-                          <button 
-                            onClick={() => setActiveTab('history')}
-                            className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] tracking-widest uppercase hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-xl shadow-slate-900/10"
-                          >
-                            <History size={14} />
-                            TRACK STATUS
-                          </button>
+                          <div className="flex gap-3">
+                            <button 
+                              onClick={() => setActiveTab('history')}
+                              className="flex-1 py-4 bg-indigo-600/20 border border-indigo-500/30 text-indigo-300 rounded-[1.5rem] font-black text-[10px] tracking-widest uppercase hover:bg-indigo-600/40 hover:text-white transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(99,102,241,0.2)]"
+                            >
+                              <History size={14} />
+                              VIEW DETAILS
+                            </button>
+                            {userRole === UserRole.Driver && activeRide.status === 1 && (
+                              <button 
+                                onClick={async () => {
+                                  try {
+                                    const { completeRide } = await import('../utils/web3');
+                                    await completeRide(activeRide.id);
+                                    // Let the interval auto-refresh, or we can just open earnings
+                                    setActiveTab('earnings');
+                                  } catch (e) {
+                                    console.error("Failed to complete:", e);
+                                  }
+                                }}
+                                className="flex-1 py-4 bg-green-500/80 hover:bg-green-500 text-white border border-green-400/50 rounded-[1.5rem] font-black text-[10px] tracking-widest uppercase transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(34,197,94,0.4)]"
+                              >
+                                COMPLETE RIDE
+                              </button>
+                            )}
+                          </div>
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -170,9 +190,9 @@ const Dashboard: React.FC<DashboardProps> = ({ walletAddress, userRole }) => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="p-12 w-full max-w-4xl mx-auto overflow-auto h-full no-scrollbar"
+              className="p-12 w-full max-w-4xl mx-auto overflow-auto h-full no-scrollbar relative z-20"
             >
-              <h2 className="text-4xl font-black text-slate-900 mb-10">Ride History</h2>
+              <h2 className="text-4xl font-black text-white mb-10 drop-shadow-lg">Ride History</h2>
               <RideHistory walletAddress={walletAddress} />
             </motion.div>
           )}
@@ -183,9 +203,9 @@ const Dashboard: React.FC<DashboardProps> = ({ walletAddress, userRole }) => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="p-12 w-full max-w-2xl mx-auto overflow-auto h-full no-scrollbar"
+              className="p-12 w-full max-w-2xl mx-auto overflow-auto h-full no-scrollbar relative z-20"
             >
-              <h2 className="text-4xl font-black text-slate-900 mb-10">Earnings & Wallet</h2>
+              <h2 className="text-4xl font-black text-white mb-10 drop-shadow-md">Earnings & Wallet</h2>
               <WithdrawFunds walletAddress={walletAddress} />
             </motion.div>
           )}
@@ -196,13 +216,13 @@ const Dashboard: React.FC<DashboardProps> = ({ walletAddress, userRole }) => {
           <motion.div 
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="bg-slate-900/90 backdrop-blur-xl px-10 py-4 rounded-full shadow-2xl border border-white/10 flex items-center gap-10 pointer-events-auto"
+            className="glass-panel px-10 py-4 rounded-full flex items-center gap-10 pointer-events-auto"
           >
             <div className="flex items-center gap-4">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_#22c55e]"></div>
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_10px_#4ade80]"></div>
               <span className="text-xs font-black text-white uppercase tracking-widest">Protocol Active</span>
             </div>
-            <div className="h-6 w-px bg-white/10"></div>
+            <div className="h-6 w-px bg-white/20"></div>
             <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">
               Role: <span className="text-indigo-400">{userRole === UserRole.Rider ? 'RIDER' : 'DRIVER'}</span>
             </div>

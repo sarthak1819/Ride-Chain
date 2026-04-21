@@ -59,6 +59,17 @@ export const initWeb3 = async () => {
       
       if (network.chainId !== 31337n && network.chainId !== 1337n) {
         console.warn('Warning: Not connected to Hardhat/Localhost (Chain ID 31337/1337). Transactions may fail.');
+        try {
+          console.log('Attempting to automatically switch MetaMask to Localhost...');
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: '0x539' }], // 0x539 is 1337 in hex
+          });
+          alert('MetaMask has been switched to Localhost! Please refresh the page.');
+        } catch (switchError: any) {
+          console.error('Failed to switch network automatically:', switchError);
+          alert('Please open MetaMask and manually switch to the Localhost 8545 network before continuing.');
+        }
       }
 
       signer = await provider.getSigner();
@@ -187,7 +198,8 @@ export const requestRide = async (pickupLocation: string, dropoffLocation: strin
     console.log(`TRANSACTION INITIATED: ${pickupLocation} -> ${dropoffLocation} | Fare: ${fare} ETH`);
     
     // Check balance before sending
-    const balance = await provider.getBalance(signer.address);
+    const address = await signer.getAddress();
+    const balance = await provider!.getBalance(address);
     if (balance < fareWei) {
       const balanceEth = ethers.formatEther(balance);
       alert(`INSUFFICIENT FUNDS!\nYour Balance: ${balanceEth} ETH\nRequired: ${fare} ETH\n\nTry a shorter distance (e.g. Colaba to Mumbai) or use a different account.`);

@@ -68,8 +68,10 @@ const UserRegistration: React.FC<UserRegistrationProps> = ({ walletAddress, onRe
         setIsRegistered(true);
         const user = await getCurrentUser();
         console.log("User registered successfully. Data from blockchain:", user);
-        setCurrentUser(user);
-        onRegistered(true, Number(user.role));
+        if (user) {
+          setCurrentUser(user);
+          onRegistered(true, Number(user.role));
+        }
       } else {
         setError('Failed to register user');
       }
@@ -83,37 +85,37 @@ const UserRegistration: React.FC<UserRegistrationProps> = ({ walletAddress, onRe
 
   if (isRegistered && currentUser) {
     return (
-      <div className="bg-white p-10 rounded-[3rem] shadow-2xl border border-slate-100">
+      <div className="glass-panel p-10 rounded-[3rem] shadow-[0_0_50px_rgba(99,102,241,0.2)]">
         <div className="flex items-center gap-6 mb-8">
-          <div className="w-20 h-20 bg-indigo-50 rounded-[1.8rem] flex items-center justify-center text-indigo-600">
+          <div className="w-20 h-20 bg-indigo-500/20 rounded-[1.8rem] flex items-center justify-center text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.4)]">
             <UserCircle size={40} />
           </div>
           <div>
-            <h2 className="text-3xl font-black text-slate-800 tracking-tight">Identity Verified</h2>
-            <p className="text-slate-500 font-bold uppercase text-xs tracking-widest mt-1">
+            <h2 className="text-3xl font-black text-white tracking-tight">Identity Verified</h2>
+            <p className="text-indigo-400 font-bold uppercase text-xs tracking-widest mt-1 drop-shadow-[0_0_8px_rgba(129,140,248,0.8)]">
               {currentUser.role === UserRole.Rider ? 'RIDER' : 'DRIVER'} ACTIVE
             </p>
           </div>
         </div>
 
         <div className="space-y-6">
-          <div className="p-8 bg-slate-50 rounded-[2rem] border border-slate-100">
+          <div className="p-8 bg-white/5 rounded-[2rem] border border-white/10 shadow-inner block">
             <div className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Protocol Data</div>
-            <div className="space-y-3">
-              <div className="flex justify-between font-bold">
-                <span className="text-slate-500">Name</span>
-                <span className="text-slate-800">{currentUser.name}</span>
+            <div className="space-y-4">
+              <div className="flex justify-between font-bold border-b border-white/10 pb-3">
+                <span className="text-slate-400">Name</span>
+                <span className="text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]">{currentUser.name}</span>
               </div>
-              <div className="flex justify-between font-bold">
-                <span className="text-slate-500">Address</span>
-                <span className="text-slate-800 font-mono text-xs truncate max-w-[150px]">{walletAddress}</span>
+              <div className="flex justify-between font-bold pt-1">
+                <span className="text-slate-400">Address</span>
+                <span className="text-indigo-300 font-mono text-xs truncate max-w-[150px]">{walletAddress}</span>
               </div>
             </div>
           </div>
           
           <button
             onClick={() => onRegistered(true, Number(currentUser.role))}
-            className="w-full py-6 bg-slate-900 text-white rounded-[1.8rem] font-black text-sm tracking-widest hover:bg-indigo-600 transition-all flex items-center justify-center gap-3 shadow-xl"
+            className="w-full py-6 bg-indigo-600/80 text-white rounded-[1.8rem] font-black text-sm tracking-widest hover:bg-indigo-500 transition-all flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(99,102,241,0.4)] hover:shadow-[0_0_40px_rgba(99,102,241,0.6)]"
           >
             ENTER DASHBOARD
           </button>
@@ -123,10 +125,13 @@ const UserRegistration: React.FC<UserRegistrationProps> = ({ walletAddress, onRe
   }
 
   return (
-    <div className="w-full">
-      <form onSubmit={handleSubmit} className="space-y-8">
+    <div className="w-full glass-panel p-10 rounded-[3rem] relative mt-10">
+      <div className="absolute top-0 right-0 p-8 opacity-5">
+        <UserCircle size={120} className="text-white" />
+      </div>
+      <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
         <div>
-          <label htmlFor="name" className="block text-sm font-bold text-slate-500 mb-3 uppercase tracking-widest">
+          <label htmlFor="name" className="block text-sm font-bold text-slate-300 mb-3 uppercase tracking-widest">
             Identity Name
           </label>
           <input
@@ -134,7 +139,7 @@ const UserRegistration: React.FC<UserRegistrationProps> = ({ walletAddress, onRe
             id="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full px-8 py-5 bg-slate-50 border border-slate-100 rounded-[2rem] focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:bg-white focus:border-indigo-500 font-bold text-slate-800 transition-all shadow-sm"
+            className="w-full px-8 py-5 bg-black/40 border border-white/10 rounded-[2rem] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-bold text-white transition-all shadow-inner placeholder:text-slate-600"
             placeholder="e.g. Satoshi Nakamoto"
             required
           />
@@ -142,17 +147,17 @@ const UserRegistration: React.FC<UserRegistrationProps> = ({ walletAddress, onRe
         
         {!defaultRole && (
           <div>
-            <label className="block text-sm font-bold text-slate-500 mb-4 uppercase tracking-widest">
+            <label className="block text-sm font-bold text-slate-300 mb-4 uppercase tracking-widest">
               Service Role
             </label>
             <div className="grid grid-cols-2 gap-6">
               <button
                 type="button"
                 onClick={() => setRole(UserRole.Rider)}
-                className={`py-5 px-6 rounded-[2rem] border-2 transition-all font-black text-sm tracking-widest ${
+                className={`py-5 px-6 rounded-[2rem] border transition-all font-black text-sm tracking-widest ${
                   role === UserRole.Rider
-                    ? 'bg-indigo-50 border-indigo-600 text-indigo-700 shadow-xl scale-105'
-                    : 'bg-white border-slate-100 text-slate-400 hover:bg-slate-50'
+                    ? 'bg-indigo-500/20 border-indigo-500 text-indigo-300 shadow-[0_0_20px_rgba(99,102,241,0.4)] scale-[1.02]'
+                    : 'bg-black/20 border-white/10 text-slate-500 hover:bg-white/5'
                 }`}
               >
                 RIDER
@@ -160,10 +165,10 @@ const UserRegistration: React.FC<UserRegistrationProps> = ({ walletAddress, onRe
               <button
                 type="button"
                 onClick={() => setRole(UserRole.Driver)}
-                className={`py-5 px-6 rounded-[2rem] border-2 transition-all font-black text-sm tracking-widest ${
+                className={`py-5 px-6 rounded-[2rem] border transition-all font-black text-sm tracking-widest ${
                   role === UserRole.Driver
-                    ? 'bg-slate-900 border-slate-900 text-white shadow-xl scale-105'
-                    : 'bg-white border-slate-100 text-slate-400 hover:bg-slate-50'
+                    ? 'bg-purple-500/20 border-purple-500 text-purple-300 shadow-[0_0_20px_rgba(168,85,247,0.4)] scale-[1.02]'
+                    : 'bg-black/20 border-white/10 text-slate-500 hover:bg-white/5'
                 }`}
               >
                 DRIVER
@@ -173,7 +178,7 @@ const UserRegistration: React.FC<UserRegistrationProps> = ({ walletAddress, onRe
         )}
         
         <div>
-          <label htmlFor="phoneNumber" className="block text-sm font-bold text-slate-500 mb-3 uppercase tracking-widest">
+          <label htmlFor="phoneNumber" className="block text-sm font-bold text-slate-300 mb-3 uppercase tracking-widest">
             Contact Number
           </label>
           <input
@@ -181,7 +186,7 @@ const UserRegistration: React.FC<UserRegistrationProps> = ({ walletAddress, onRe
             id="phoneNumber"
             value={phoneNumber}
             onChange={(e) => setPhoneNumber(e.target.value)}
-            className="w-full px-8 py-5 bg-slate-50 border border-slate-100 rounded-[2rem] focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:bg-white focus:border-indigo-500 font-bold text-slate-800 transition-all shadow-sm"
+            className="w-full px-8 py-5 bg-black/40 border border-white/10 rounded-[2rem] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-bold text-white transition-all shadow-inner placeholder:text-slate-600"
             placeholder="+1 555-0123"
           />
         </div>
@@ -190,16 +195,16 @@ const UserRegistration: React.FC<UserRegistrationProps> = ({ walletAddress, onRe
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-5 bg-red-50 text-red-600 rounded-[2rem] text-sm font-bold flex items-center gap-3 border border-red-100"
+            className="p-5 bg-red-500/10 text-red-400 rounded-[2rem] text-sm font-bold flex items-center gap-3 border border-red-500/20"
           >
-            <div className="w-2 h-2 bg-red-600 rounded-full animate-ping"></div>
+            <div className="w-2 h-2 bg-red-500 rounded-full animate-ping"></div>
             {error}
           </motion.div>
         )}
         
         {!walletAddress ? (
-          <div className="p-10 bg-slate-50 rounded-[2rem] border border-slate-100 text-center">
-            <p className="text-slate-500 font-bold mb-6">Wallet connection required to access the protocol.</p>
+          <div className="p-10 bg-black/40 rounded-[2rem] border border-white/10 text-center">
+            <p className="text-slate-400 font-bold mb-6">Wallet connection required to access the protocol.</p>
             <div className="max-w-xs mx-auto">
                <button 
                 type="button"
@@ -209,13 +214,16 @@ const UserRegistration: React.FC<UserRegistrationProps> = ({ walletAddress, onRe
                     const success = await initWeb3();
                     if (success) {
                       const addr = await getCurrentAccount();
-                      if (addr) window.location.reload(); // Simplest way to sync all states
+                      if (addr) {
+                        sessionStorage.removeItem('isLoggedOut');
+                        window.location.reload();
+                      }
                     }
                   } catch (e) {
                     setError("Failed to connect wallet. Ensure MetaMask is open.");
                   }
                 }}
-                className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm tracking-widest hover:bg-indigo-700 shadow-lg shadow-indigo-600/20"
+                className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm tracking-widest hover:bg-indigo-500 shadow-[0_0_20px_rgba(99,102,241,0.4)] transition-all"
                >
                  CONNECT WALLET
                </button>
@@ -225,10 +233,10 @@ const UserRegistration: React.FC<UserRegistrationProps> = ({ walletAddress, onRe
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full py-6 px-8 rounded-[2rem] transition-all flex items-center justify-center gap-4 font-black text-xl shadow-2xl hover:scale-[1.02] active:scale-[0.98] ${
+            className={`w-full py-6 px-8 rounded-[2rem] transition-all flex items-center justify-center gap-4 font-black text-xl shadow-[0_0_30px_rgba(0,0,0,0.5)] hover:scale-[1.02] active:scale-[0.98] ${
               role === UserRole.Driver 
-                ? 'bg-slate-900 text-white hover:bg-slate-800 shadow-slate-900/20' 
-                : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-600/20'
+                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-500 hover:to-indigo-500 border border-purple-400/30' 
+                : 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white hover:from-indigo-500 hover:to-blue-500 border border-indigo-400/30'
             }`}
           >
             {isLoading ? (

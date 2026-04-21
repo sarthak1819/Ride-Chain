@@ -58,21 +58,21 @@ const WithdrawFunds: React.FC<WithdrawFundsProps> = ({ walletAddress }) => {
   if (!walletAddress) return null;
 
   return (
-    <div className="bg-white/80 backdrop-blur-xl p-8 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-white">
-      <div className="flex justify-between items-center mb-8">
+    <div className="glass-panel p-8 rounded-[2.5rem] shadow-[0_0_40px_rgba(99,102,241,0.2)] border border-white/10 relative overflow-hidden">
+      <div className="flex justify-between items-center mb-8 relative z-10">
         <div>
-          <h2 className="text-2xl font-black text-slate-800 flex items-center gap-3">
-            <div className="p-2 bg-indigo-50 rounded-xl text-indigo-600">
+          <h2 className="text-2xl font-black text-white flex items-center gap-3 drop-shadow-md">
+            <div className="p-2 bg-indigo-500/20 rounded-xl text-indigo-400 border border-indigo-400/30">
               <Wallet size={20} />
             </div>
             Protocol Wallet
           </h2>
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Settlement Account</p>
+          <p className="text-xs font-bold text-indigo-300 uppercase tracking-widest mt-2">Settlement Account</p>
         </div>
         <button 
           onClick={fetchBalance}
           disabled={isLoading}
-          className="p-3 bg-slate-50 hover:bg-slate-100 rounded-2xl text-slate-400 transition-all active:scale-95"
+          className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-indigo-300 transition-all active:scale-95"
         >
           <RefreshCcw size={18} className={isLoading ? 'animate-spin' : ''} />
         </button>
@@ -119,10 +119,10 @@ const WithdrawFunds: React.FC<WithdrawFundsProps> = ({ walletAddress }) => {
       <button
         onClick={handleWithdraw}
         disabled={isWithdrawing || isLoading || parseFloat(balance) <= 0}
-        className={`w-full py-6 px-8 rounded-[1.8rem] transition-all flex items-center justify-center gap-3 font-black text-lg shadow-xl ${
+        className={`w-full py-6 px-8 rounded-[1.8rem] transition-all flex items-center justify-center gap-3 font-black text-lg relative z-10 ${
           parseFloat(balance) > 0
-            ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-500/20 hover:scale-[1.02] active:scale-[0.98]'
-            : 'bg-slate-100 text-slate-300 cursor-not-allowed shadow-none'
+            ? 'bg-indigo-600/90 text-white hover:bg-indigo-500 shadow-[0_0_20px_rgba(99,102,241,0.5)] hover:shadow-[0_0_30px_rgba(99,102,241,0.8)] hover:scale-[1.02] active:scale-[0.98]'
+            : 'bg-white/5 text-slate-500 cursor-not-allowed shadow-none border border-white/5'
         }`}
       >
         {isWithdrawing ? (
@@ -135,8 +135,8 @@ const WithdrawFunds: React.FC<WithdrawFundsProps> = ({ walletAddress }) => {
         )}
       </button>
       
-      <div className="mt-8 flex items-center gap-3 p-4 bg-slate-50 rounded-2xl">
-        <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
+      <div className="mt-8 flex items-center gap-3 p-4 bg-black/20 rounded-2xl border border-white/5 relative z-10">
+        <div className="w-2 h-2 bg-indigo-400 rounded-full animate-pulse shadow-[0_0_5px_#818cf8]"></div>
         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
           Standard Blockchain gas fees apply to this settlement.
         </p>

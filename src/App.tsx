@@ -60,9 +60,10 @@ const App: React.FC = () => {
     checkConnection();
     if (window.ethereum) {
       window.ethereum.on('accountsChanged', (_accounts: string[]) => {
-        // If they switch accounts in MetaMask, clear logout flag and reconnect
+        // If they switch accounts in MetaMask, we MUST reload the page 
+        // to re-initialize the Ethers.js contract with the newly selected signer instance.
         sessionStorage.removeItem('isLoggedOut');
-        checkConnection();
+        window.location.reload();
       });
       window.ethereum.on('chainChanged', () => window.location.reload());
     }
@@ -92,20 +93,24 @@ const App: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-6">
+      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-500/20 rounded-full blur-[120px]"></div>
+        <div className="flex flex-col items-center gap-6 relative z-10">
           <div className="relative">
-            <div className="w-20 h-20 border-4 border-indigo-500/20 rounded-full"></div>
-            <div className="absolute inset-0 w-20 h-20 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-24 h-24 border-2 border-indigo-500/20 rounded-full"></div>
+            <div className="absolute inset-0 w-24 h-24 border-2 border-transparent border-t-indigo-400 border-r-purple-400 rounded-full animate-spin"></div>
+            <div className="absolute inset-0 w-24 h-24 border-2 border-transparent border-b-pink-400 rounded-full animate-[spin_2s_linear_infinite_reverse]"></div>
           </div>
-          <div className="text-white text-2xl font-bold tracking-tight animate-pulse">RideChain</div>
+          <div className="text-white text-3xl font-black tracking-tight neon-text animate-pulse">RideChain</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white font-sans text-slate-900">
+    <div className="min-h-screen bg-[#0a0a0f] font-sans text-slate-100 relative selection:bg-indigo-500/30">
+      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-900/20 via-[#0a0a0f] to-[#0a0a0f]"></div>
+      <div className="relative z-10">
       <Navbar onProfileClick={() => setIsProfileOpen(true)} />
       
       <Routes>
@@ -136,6 +141,7 @@ const App: React.FC = () => {
           />
         )}
       </AnimatePresence>
+      </div>
     </div>
   );
 };

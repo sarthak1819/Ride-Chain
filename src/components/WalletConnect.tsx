@@ -17,6 +17,11 @@ const WalletConnect: React.FC<WalletConnectProps> = ({ onConnect }) => {
   useEffect(() => {
     const checkConnection = async () => {
       try {
+        // If the user manually logged out during this session, do not immediately auto-connect
+        if (sessionStorage.getItem('isLoggedOut') === 'true') {
+          return;
+        }
+
         const connected = await isConnected();
         if (connected) {
           const address = await getCurrentAccount();
@@ -136,7 +141,7 @@ const WalletConnect: React.FC<WalletConnectProps> = ({ onConnect }) => {
             <button
               onClick={connectWallet}
               disabled={isLoading}
-              className="flex items-center justify-center gap-3 bg-indigo-600 text-white px-8 py-4 rounded-2xl hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-500/25 w-full font-bold text-lg"
+              className="flex items-center justify-center gap-3 bg-indigo-600/80 text-white px-8 py-4 rounded-[2rem] hover:bg-indigo-500 transition-all shadow-[0_0_20px_rgba(99,102,241,0.4)] hover:shadow-[0_0_40px_rgba(99,102,241,0.7)] w-full font-black text-lg"
             >
               <Wallet size={24} />
               {isLoading ? 'Connecting...' : 'Connect MetaMask'}
@@ -147,34 +152,34 @@ const WalletConnect: React.FC<WalletConnectProps> = ({ onConnect }) => {
                 href="https://metamask.io/download/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-3 bg-orange-500 text-white px-8 py-4 rounded-2xl hover:bg-orange-600 transition-all shadow-lg hover:shadow-orange-500/25 w-full font-bold text-lg"
+                className="flex items-center justify-center gap-3 bg-orange-500/80 text-white px-8 py-4 rounded-[2rem] hover:bg-orange-500 transition-all shadow-[0_0_20px_rgba(249,115,22,0.4)] hover:shadow-[0_0_30px_rgba(249,115,22,0.6)] w-full font-black text-lg"
               >
                 <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" className="w-6 h-6" alt="MetaMask" />
                 Install MetaMask
               </a>
-              <p className="mt-3 text-sm text-slate-500 text-center italic">
+              <p className="mt-4 text-sm text-slate-500 text-center italic">
                 MetaMask is required to use RideChain.
               </p>
             </div>
           )}
           
           {error && (
-            <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded-xl text-red-600 flex items-center gap-2 text-sm w-full">
-              <AlertCircle size={18} className="shrink-0" />
+            <div className="mt-6 p-4 bg-red-500/10 border border-red-500/20 rounded-[1.5rem] text-red-400 flex items-center gap-3 text-sm w-full font-bold shadow-inner">
+              <AlertCircle size={18} className="shrink-0 animate-pulse" />
               <span>{error}</span>
             </div>
           )}
           
-          <div className="mt-8 pt-6 border-t border-slate-100 w-full">
-            <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3 text-center">Testnet Resources</p>
+          <div className="mt-8 pt-6 border-t border-white/10 w-full hidden">
+            <p className="text-sm font-black text-slate-500 uppercase tracking-wider mb-4 text-center">Testnet Resources</p>
             <div className="flex justify-center gap-4">
               <a 
                 href="https://sepoliafaucet.com/" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1.5 bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors"
+                className="text-indigo-400 hover:text-indigo-300 font-bold flex items-center gap-1.5 bg-indigo-500/10 border border-indigo-500/20 px-4 py-2 rounded-[1rem] transition-all hover:bg-indigo-500/20"
               >
-                <span className="text-xs">Sepolia Faucet</span>
+                <span className="text-xs tracking-wider">SEPOLIA FAUCET</span>
                 <ExternalLink size={14} />
               </a>
             </div>
