@@ -129,35 +129,55 @@ const WalletConnect: React.FC<WalletConnectProps> = ({ onConnect }) => {
   const isSepoliaNetwork = currentNetwork === NETWORK_CONFIG.chainId;
 
   return (
-    <div className="mb-6">
+    <div className="mb-6 w-full">
       {!account ? (
         <div className="flex flex-col items-center">
-          <button
-            onClick={connectWallet}
-            disabled={isLoading}
-            className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
-          >
-            <Wallet size={20} />
-            {isLoading ? 'Connecting...' : 'Connect Wallet'}
-          </button>
+          {window.ethereum ? (
+            <button
+              onClick={connectWallet}
+              disabled={isLoading}
+              className="flex items-center justify-center gap-3 bg-indigo-600 text-white px-8 py-4 rounded-2xl hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-500/25 w-full font-bold text-lg"
+            >
+              <Wallet size={24} />
+              {isLoading ? 'Connecting...' : 'Connect MetaMask'}
+            </button>
+          ) : (
+            <div className="w-full">
+              <a
+                href="https://metamask.io/download/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-3 bg-orange-500 text-white px-8 py-4 rounded-2xl hover:bg-orange-600 transition-all shadow-lg hover:shadow-orange-500/25 w-full font-bold text-lg"
+              >
+                <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" className="w-6 h-6" alt="MetaMask" />
+                Install MetaMask
+              </a>
+              <p className="mt-3 text-sm text-slate-500 text-center italic">
+                MetaMask is required to use RideChain.
+              </p>
+            </div>
+          )}
           
           {error && (
-            <div className="mt-2 text-red-500 flex items-center gap-1">
-              <AlertCircle size={16} />
+            <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded-xl text-red-600 flex items-center gap-2 text-sm w-full">
+              <AlertCircle size={18} className="shrink-0" />
               <span>{error}</span>
             </div>
           )}
           
-          <div className="mt-4 text-sm text-gray-600">
-            <p>Don't have test ETH? Get some from a faucet:</p>
-            <a 
-              href="https://sepoliafaucet.com/" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-indigo-600 hover:underline flex items-center gap-1 mt-1"
-            >
-              Sepolia Faucet <ExternalLink size={14} />
-            </a>
+          <div className="mt-8 pt-6 border-t border-slate-100 w-full">
+            <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3 text-center">Testnet Resources</p>
+            <div className="flex justify-center gap-4">
+              <a 
+                href="https://sepoliafaucet.com/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1.5 bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors"
+              >
+                <span className="text-xs">Sepolia Faucet</span>
+                <ExternalLink size={14} />
+              </a>
+            </div>
           </div>
         </div>
       ) : (

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Car, MapPin, DollarSign, Clock, Loader2, CheckCircle } from 'lucide-react';
-import { getUserRides, acceptRide, Ride, RideStatus, UserRole } from '../utils/web3';
+import { Car, MapPin, DollarSign, Clock, Loader2, CheckCircle, RefreshCcw, Navigation } from 'lucide-react';
+import { getUserRides, acceptRide, getAllAvailableRides, Ride, RideStatus, UserRole } from '../utils/web3';
 import { formatDistanceToNow } from 'date-fns';
 import { ethers } from 'ethers';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface AvailableRidesProps {
   userRole: UserRole | null;
@@ -15,11 +16,6 @@ const AvailableRides: React.FC<AvailableRidesProps> = ({ userRole }) => {
   const [acceptingRideId, setAcceptingRideId] = useState<number | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Debug log when userRole changes
-  useEffect(() => {
-    console.log("AvailableRides - userRole:", userRole, userRole === UserRole.Rider ? "(Rider)" : userRole === UserRole.Driver ? "(Driver)" : "(null)");
-  }, [userRole]);
-
   useEffect(() => {
     if (userRole === UserRole.Driver) {
       fetchAvailableRides();
@@ -29,16 +25,11 @@ const AvailableRides: React.FC<AvailableRidesProps> = ({ userRole }) => {
   const fetchAvailableRides = async () => {
     setIsLoading(true);
     setError(null);
-    
     try {
-      // In a real implementation, you would fetch available rides from the contract
-      // For now, we'll just simulate it with some dummy data
-      const allRides = await getUserRides();
-      const availableRides = allRides.filter(ride => ride.status === RideStatus.Available);
+      const availableRides = await getAllAvailableRides();
       setRides(availableRides);
     } catch (err: any) {
       setError(err.message || 'Error fetching available rides');
-      console.error('Error fetching available rides:', err);
     } finally {
       setIsLoading(false);
     }
@@ -47,155 +38,139 @@ const AvailableRides: React.FC<AvailableRidesProps> = ({ userRole }) => {
   const handleAcceptRide = async (rideId: number) => {
     setAcceptingRideId(rideId);
     setError(null);
-    setSuccessMessage(null);
-    
     try {
       const result = await acceptRide(rideId);
       if (result) {
-        setSuccessMessage(`You have successfully accepted ride #${rideId}`);
-        // Remove the accepted ride from the list
+        setSuccessMessage(`Ride #${rideId} Accepted`);
         setRides(rides.filter(ride => ride.id !== rideId));
+        setTimeout(() => setSuccessMessage(null), 3000);
       } else {
         setError('Failed to accept ride');
       }
     } catch (err: any) {
       setError(err.message || 'Error accepting ride');
-      console.error('Error accepting ride:', err);
     } finally {
       setAcceptingRideId(null);
     }
   };
 
-  // Check if userRole is explicitly not a Driver (we need to be sure it's not null)
   if (userRole !== null && userRole !== UserRole.Driver) {
-    return (
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <Car className="text-indigo-600" />
-          Available Rides
-        </h2>
-        <div className="text-center py-4 text-gray-500">
-          Only drivers can view and accept rides. Your role is Rider.
-        </div>
-      </div>
-    );
+    return null; // Don't show for riders
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold flex items-center gap-2">
-          <Car className="text-indigo-600" />
-          Available Rides
-        </h2>
+    <div className="bg-white/80 backdrop-blur-xl p-8 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-white max-h-[600px] flex flex-col">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h2 className="text-2xl font-black text-slate-800 flex items-center gap-3">
+            <div className="p-2 bg-indigo-50 rounded-xl text-indigo-600">
+              <Navigation size={20} />
+            </div>
+            Dispatch Board
+          </h2>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Available Missions</p>
+        </div>
         <button
           onClick={fetchAvailableRides}
           disabled={isLoading}
-          className="text-sm text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+          className="p-3 bg-slate-50 hover:bg-slate-100 rounded-2xl text-slate-600 transition-all active:scale-95 disabled:opacity-50"
         >
-          {isLoading ? (
-            <>
-              <Loader2 size={14} className="animate-spin" />
-              Loading...
-            </>
-          ) : (
-            <>
-              <Clock size={14} />
-              Refresh
-            </>
-          )}
+          <RefreshCcw size={20} className={isLoading ? 'animate-spin' : ''} />
         </button>
       </div>
       
-      {successMessage && (
-        <div className="bg-green-50 border border-green-200 rounded-md p-3 mb-4 flex items-start gap-2">
-          <CheckCircle size={18} className="text-green-500 mt-0.5" />
-          <div>
-            <p className="text-green-800">{successMessage}</p>
-            <button
-              onClick={() => setSuccessMessage(null)}
-              className="text-xs text-indigo-600 hover:text-indigo-800 mt-1"
-            >
-              Dismiss
-            </button>
+      <AnimatePresence>
+        {successMessage && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="bg-green-500 text-white p-4 rounded-2xl mb-6 flex items-center gap-3 font-bold shadow-lg shadow-green-500/20"
+          >
+            <CheckCircle size={20} />
+            {successMessage}
+          </motion.div>
+        )}
+        
+        {error && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-red-50 text-red-600 p-4 rounded-2xl mb-6 text-sm font-bold border border-red-100"
+          >
+            {error}
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      <div className="space-y-4 overflow-y-auto pr-2 no-scrollbar flex-1">
+        {rides.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+              <Car size={32} />
+            </div>
+            <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">
+              {isLoading ? 'Scanning Protocol...' : 'No Requests Found'}
+            </p>
           </div>
-        </div>
-      )}
-      
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-3 mb-4 text-red-700">
-          {error}
-        </div>
-      )}
-      
-      {rides.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          {isLoading ? 'Loading available rides...' : 'No available rides at the moment'}
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {rides.map((ride) => (
-            <div key={ride.id} className="border border-gray-200 rounded-lg p-4">
-              <div className="flex justify-between items-start mb-3">
-                <h3 className="font-medium">Ride #{ride.id}</h3>
-                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                  Available
-                </span>
+        ) : (
+          rides.map((ride) => (
+            <motion.div 
+              layout
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              key={ride.id} 
+              className="group bg-slate-50 hover:bg-white p-6 rounded-[2rem] border border-transparent hover:border-indigo-100 transition-all hover:shadow-xl hover:shadow-indigo-500/5"
+            >
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h3 className="font-black text-slate-800 text-lg">Trip #{ride.id}</h3>
+                  <div className="flex items-center gap-2 text-slate-400 mt-1">
+                    <Clock size={14} />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">
+                      {formatDistanceToNow(new Date(ride.timestamp * 1000), { addSuffix: true })}
+                    </span>
+                  </div>
+                </div>
+                <div className="bg-indigo-600 text-white px-4 py-2 rounded-xl font-black text-sm shadow-lg shadow-indigo-500/30">
+                  {ethers.formatEther(ride.fare)} ETH
+                </div>
               </div>
               
-              <div className="space-y-2 mb-4">
-                <div className="flex items-start gap-2">
-                  <MapPin size={18} className="text-gray-400 mt-0.5" />
-                  <div>
-                    <div className="text-sm font-medium">Pickup</div>
-                    <div className="text-sm text-gray-600">{ride.pickupLocation}</div>
-                  </div>
+              <div className="relative pl-6 space-y-6 before:content-[''] before:absolute before:left-[5px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 mb-8">
+                <div className="relative">
+                  <div className="absolute -left-[25px] top-1 w-3 h-3 rounded-full bg-indigo-500 border-2 border-white"></div>
+                  <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Pickup</div>
+                  <div className="text-sm font-bold text-slate-700">{ride.pickupLocation}</div>
                 </div>
                 
-                <div className="flex items-start gap-2">
-                  <MapPin size={18} className="text-gray-400 mt-0.5" />
-                  <div>
-                    <div className="text-sm font-medium">Dropoff</div>
-                    <div className="text-sm text-gray-600">{ride.dropoffLocation}</div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <DollarSign size={18} className="text-gray-400" />
-                  <div>
-                    <span className="text-sm font-medium">Fare:</span>{' '}
-                    <span className="text-sm">{ethers.formatEther(ride.fare)} ETH</span>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Clock size={18} className="text-gray-400" />
-                  <div className="text-sm">
-                    Requested {formatDistanceToNow(new Date(ride.timestamp * 1000), { addSuffix: true })}
-                  </div>
+                <div className="relative">
+                  <div className="absolute -left-[25px] top-1 w-3 h-3 rounded-sm bg-purple-500 border-2 border-white"></div>
+                  <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Dropoff</div>
+                  <div className="text-sm font-bold text-slate-700">{ride.dropoffLocation}</div>
                 </div>
               </div>
               
               <button
                 onClick={() => handleAcceptRide(ride.id)}
                 disabled={acceptingRideId === ride.id}
-                className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+                className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-sm tracking-widest hover:bg-indigo-600 transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-50 shadow-xl shadow-slate-900/10"
               >
                 {acceptingRideId === ride.id ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" />
-                    Accepting...
-                  </>
+                  <Loader2 size={18} className="animate-spin" />
                 ) : (
-                  'Accept Ride'
+                  <>
+                    <Navigation size={16} className="rotate-45" />
+                    ACCEPT MISSION
+                  </>
                 )}
               </button>
-            </div>
-          ))}
-        </div>
-      )}
+            </motion.div>
+          ))
+        )}
+      </div>
     </div>
   );
 };
 
-export default AvailableRides; 
+export default AvailableRides;

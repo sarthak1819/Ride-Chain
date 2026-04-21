@@ -2,7 +2,7 @@ import { ethers } from 'ethers';
 import RideSharingArtifact from '../artifacts/contracts/RideSharing.sol/RideSharing.json';
 
 // Contract address will be set after deployment
-const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || '';
+export const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || '';
 
 // Types
 export enum UserRole {
@@ -52,7 +52,23 @@ export const initWeb3 = async () => {
       await window.ethereum.request({ method: 'eth_requestAccounts' });
       
       provider = new ethers.BrowserProvider(window.ethereum);
+      
+      // Check network
+      const network = await provider.getNetwork();
+      console.log('Connected to network:', network.name, 'Chain ID:', network.chainId);
+      
+      if (network.chainId !== 31337n && network.chainId !== 1337n) {
+        console.warn('Warning: Not connected to Hardhat/Localhost (Chain ID 31337/1337). Transactions may fail.');
+      }
+
       signer = await provider.getSigner();
+      
+      if (!CONTRACT_ADDRESS) {
+        console.error('VITE_CONTRACT_ADDRESS is not defined in .env.local');
+        return false;
+      }
+
+      console.log('Initializing contract at:', CONTRACT_ADDRESS);
       
       contract = new ethers.Contract(
         CONTRACT_ADDRESS,
@@ -134,7 +150,7 @@ export const getCurrentUser = async (): Promise<User | null> => {
       wallet: user.wallet,
       name: user.name,
       phoneNumber: user.phoneNumber,
-      role: user.role,
+      role: Number(user.role),
       isRegistered: user.isRegistered,
       rating: Number(user.rating),
       totalRatings: Number(user.totalRatings)
@@ -152,17 +168,55 @@ export const getCurrentUser = async (): Promise<User | null> => {
 
 export const requestRide = async (pickupLocation: string, dropoffLocation: string, fare: string): Promise<boolean> => {
   if (!contract || !signer) {
-    await initWeb3();
-    if (!contract || !signer) return false;
+    console.log("Contract not initialized, attempting to init...");
+    const initialized = await initWeb3();
+    if (!initialized || !contract || !signer) {
+      alert("Blockchain connection failed. Please ensure MetaMask is connected to Localhost 8545.");
+      return false;
+    }
   }
   
   try {
+    // Basic validation
+    if (!fare || isNaN(parseFloat(fare)) || parseFloat(fare) <= 0) {
+      alert("Error: Invalid fare amount calculated.");
+      return false;
+    }
+
     const fareWei = ethers.parseEther(fare);
-    const tx = await contract.requestRide(pickupLocation, dropoffLocation, fareWei, { value: fareWei });
+    console.log(`TRANSACTION INITIATED: ${pickupLocation} -> ${dropoffLocation} | Fare: ${fare} ETH`);
+    
+    // Check balance before sending
+    const balance = await provider.getBalance(signer.address);
+    if (balance < fareWei) {
+      const balanceEth = ethers.formatEther(balance);
+      alert(`INSUFFICIENT FUNDS!\nYour Balance: ${balanceEth} ETH\nRequired: ${fare} ETH\n\nTry a shorter distance (e.g. Colaba to Mumbai) or use a different account.`);
+      return false;
+    }
+
+    const tx = await contract.requestRide(pickupLocation, dropoffLocation, fareWei, { 
+      value: fareWei,
+      gasLimit: 500000 
+    });
+    
+    console.log("Transaction Broadcasted:", tx.hash);
     await tx.wait();
     return true;
-  } catch (error) {
-    console.error('Error requesting ride', error);
+  } catch (error: any) {
+    console.error('CRITICAL TRANSACTION ERROR:', error);
+    
+    let message = "Transaction Failed!";
+    if (error.message.includes("User denied")) {
+      message = "You rejected the transaction in MetaMask.";
+    } else if (error.message.includes("insufficient funds")) {
+      message = "Insufficient ETH for fare + gas.";
+    } else if (error.reason) {
+      message = `Blockchain Revert: ${error.reason}`;
+    } else {
+      message = `Error: ${error.message.substring(0, 100)}...`;
+    }
+    
+    alert(message);
     return false;
   }
 };
@@ -312,4 +366,44 @@ export const getUserBalance = async (): Promise<string> => {
     console.error('Error getting user balance', error);
     return '0';
   }
-}; 
+};
+
+export const getAllAvailableRides = async (): Promise<Ride[]> => {
+  if (!contract || !signer) {
+    await initWeb3();
+    if (!contract || !signer) return [];
+  }
+  
+  try {
+    const count = await contract.getRideCount();
+    if (Number(count) === 0) return [];
+    
+    // Fetch last 50 rides to find available ones (for demo purposes)
+    const start = Math.max(0, Number(count) - 50);
+    const end = Number(count) - 1;
+    
+    const rawRides = await contract.getRidesInRange(start, end);
+    const rides: Ride[] = [];
+    
+    for (const ride of rawRides) {
+      if (Number(ride.status) === RideStatus.Available) {
+        rides.push({
+          id: Number(ride.id),
+          rider: ride.rider,
+          driver: ride.driver,
+          pickupLocation: ride.pickupLocation,
+          dropoffLocation: ride.dropoffLocation,
+          fare: ride.fare,
+          timestamp: Number(ride.timestamp),
+          status: Number(ride.status),
+          isRated: ride.isRated
+        });
+      }
+    }
+    
+    return rides.reverse(); // Newest first
+  } catch (error) {
+    console.error('Error getting available rides', error);
+    return [];
+  }
+};

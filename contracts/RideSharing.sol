@@ -169,10 +169,11 @@ contract RideSharing is Ownable, ReentrancyGuard {
         require(ride.status == RideStatus.Available || ride.status == RideStatus.InProgress, "Ride cannot be cancelled");
         require(msg.sender == ride.rider || msg.sender == ride.driver, "Only rider or driver can cancel");
         
+        RideStatus previousStatus = ride.status;
         ride.status = RideStatus.Cancelled;
         
         // Refund rider
-        if (ride.status == RideStatus.Available || ride.status == RideStatus.InProgress) {
+        if (previousStatus == RideStatus.Available || previousStatus == RideStatus.InProgress) {
             payable(ride.rider).transfer(ride.fare);
         }
         
@@ -268,5 +269,19 @@ contract RideSharing is Ownable, ReentrancyGuard {
 
     function getUserBalance(address _user) external view returns (uint256) {
         return balances[_user];
+    }
+
+    function getRideCount() external view returns (uint256) {
+        return rideCounter;
+    }
+
+    function getRidesInRange(uint256 _start, uint256 _end) external view returns (Ride[] memory) {
+        require(_start <= _end && _end < rideCounter, "Invalid range");
+        uint256 size = _end - _start + 1;
+        Ride[] memory result = new Ride[](size);
+        for (uint256 i = 0; i < size; i++) {
+            result[i] = rides[_start + i];
+        }
+        return result;
     }
 } 

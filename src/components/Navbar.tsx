@@ -1,5 +1,5 @@
-import React from 'react';
 import { Menu, Bell, User, Navigation2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface NavbarProps {
   onProfileClick: () => void;
@@ -7,14 +7,14 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ onProfileClick }) => {
   return (
-    <nav className="h-16 bg-white shadow-sm">
+    <nav className="h-16 bg-white shadow-sm border-b border-slate-100 z-50 relative">
       <div className="container mx-auto px-4 h-full flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Navigation2 className="w-8 h-8 text-indigo-600" />
-          <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 text-transparent bg-clip-text">
+        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <Navigation2 className="w-8 h-8 text-indigo-600 fill-indigo-600" />
+          <span className="text-2xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 text-transparent bg-clip-text tracking-tighter">
             RideChain
           </span>
-        </div>
+        </Link>
 
         <div className="flex items-center gap-4">
           <button className="p-2 hover:bg-slate-100 rounded-full relative">
